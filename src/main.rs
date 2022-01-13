@@ -69,7 +69,7 @@ fn read_matches() -> Matches {
     matches
 }
 fn main() {
-    let file = File::open("/usr/share/dict/american-english").expect("could not read dictonary");
+    let file = File::open("/usr/share/dict/american-english").expect("could not read dictionary");
     let re = Regex::new(r"^[a-z]{5}$").unwrap();
     let mut words = std::io::BufReader::new(file)
         .lines()
