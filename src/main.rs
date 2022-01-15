@@ -81,15 +81,20 @@ fn read_matches() -> Matches {
     }
     matches
 }
-fn main() {
-    let file = File::open("/usr/share/dict/american-english").expect("could not read dictionary");
+
+/// Loads a dictionary.
+fn read_words(path: &str) -> Vec<String> {
+    let file = File::open(path).expect("could not read dictionary");
     let re = Regex::new(r"^[a-z]{5}$").unwrap();
-    let mut words = std::io::BufReader::new(file)
+    std::io::BufReader::new(file)
         .lines()
         .flatten()
         .into_iter()
         .filter(|word| re.is_match(word))
-        .collect::<Vec<_>>();
+        .collect::<Vec<_>>()
+}
+fn main() {
+    let mut words = read_words("wordle_hidden_words.txt");
     loop {
         if let Some(word_to_play) = get_word_to_play(&words) {
             println!("There are {} possible words.", words.len());
