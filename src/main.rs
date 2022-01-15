@@ -36,25 +36,25 @@ fn get_match(played_word: &str, hidden_word: &str) -> Matches {
 
 /// Chooses a word to play according to the entropy objective.
 fn get_word_to_play(words: &[String]) -> Option<String> {
-    let mut min_value = f32::INFINITY;
-    let mut best_word = None;
-    for played_word in words {
-        let mut match_counts = HashMap::new();
-        for hidden_word in words {
-            *match_counts
-                .entry(get_match(played_word, hidden_word))
-                .or_insert(0) += 1;
-        }
-        let value: f32 = match_counts
-            .values()
-            .map(|&v| (v as f32) * (v as f32).log2())
-            .sum();
-        if value < min_value {
-            min_value = value;
-            best_word = Some(played_word);
-        }
-    }
-    best_word.map(|w| w.to_string())
+    words
+        .iter()
+        .map(|word| {
+            let mut match_counts = HashMap::new();
+            for hidden_word in words {
+                *match_counts
+                    .entry(get_match(word, hidden_word))
+                    .or_insert(0) += 1;
+            }
+            (
+                match_counts
+                    .values()
+                    .map(|&v| (v as f32) * (v as f32).log2())
+                    .sum::<f32>(),
+                word.clone(),
+            )
+        })
+        .reduce(|x, y| if x.0 < y.0 { x } else { y })
+        .map(|x| x.1)
 }
 
 /// Asks the user which letters of the played word matched.
