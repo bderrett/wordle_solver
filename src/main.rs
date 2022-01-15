@@ -1,23 +1,31 @@
+//! A solver for Wordle puzzles.
 use regex::Regex;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufRead;
 
+/// Represents whether a particular position of a played word
+/// matches the hidden word.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 enum Match {
+    /// The letter is an exact match. Shown in green on Wordle.
     Exact,
+    /// The letter is in the wrong position. Shown in ochre on Wordle.
     WrongPosition,
+    /// The letter is not present in the hidden word. Shown in grey on Wordle.
     Missing,
 }
 
+/// The matches for a particular played word.
 type Matches = [Match; 5];
 
-fn get_match(played_word: &str, actual_word: &str) -> Matches {
+/// Determines the matches for a particular played word.
+fn get_match(played_word: &str, hidden_word: &str) -> Matches {
     let mut matches = [Match::Missing; 5];
     for (pos, char) in played_word.chars().enumerate() {
-        matches[pos] = if char == actual_word.chars().nth(pos).unwrap() {
+        matches[pos] = if char == hidden_word.chars().nth(pos).unwrap() {
             Match::Exact
-        } else if actual_word.contains(char) {
+        } else if hidden_word.contains(char) {
             Match::WrongPosition
         } else {
             Match::Missing
@@ -26,14 +34,15 @@ fn get_match(played_word: &str, actual_word: &str) -> Matches {
     matches
 }
 
+/// Chooses a word to play according to the entropy objective.
 fn get_word_to_play(words: &[String]) -> Option<String> {
     let mut min_value = f32::INFINITY;
     let mut best_word = None;
     for played_word in words {
         let mut match_counts = HashMap::new();
-        for actual_word in words {
+        for hidden_word in words {
             *match_counts
-                .entry(get_match(played_word, actual_word))
+                .entry(get_match(played_word, hidden_word))
                 .or_insert(0) += 1;
         }
         let value: f32 = match_counts
@@ -48,6 +57,7 @@ fn get_word_to_play(words: &[String]) -> Option<String> {
     best_word.map(|w| w.to_string())
 }
 
+/// Asks the user which letters of the played word matched.
 fn read_matches() -> Matches {
     let mut matches = [Match::Missing; 5];
     for (pos, pos_match) in matches.iter_mut().enumerate() {
