@@ -15,13 +15,13 @@ type Matches = [Match; 5];
 fn get_match(played_word: &str, actual_word: &str) -> Matches {
     let mut matches = [Match::Missing; 5];
     for (pos, char) in played_word.chars().enumerate() {
-        if char == actual_word.chars().nth(pos).unwrap() {
-            matches[pos] = Match::Exact;
+        matches[pos] = if char == actual_word.chars().nth(pos).unwrap() {
+            Match::Exact
         } else if actual_word.contains(char) {
-            matches[pos] = Match::WrongPosition;
+            Match::WrongPosition
         } else {
-            matches[pos] = Match::Missing;
-        }
+            Match::Missing
+        };
     }
     matches
 }
