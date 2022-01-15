@@ -8,4 +8,4 @@ To run it: `cargo run --release`.
 
 It chooses words so as to minimize the expected logarithm of the number of remaining words. It typically solves in three guesses.
 
-I wrote this because I was wondering which word to start with. It suggests "tares".
+I wrote this because I was wondering which word to start with. It suggests "tares" (and considers the worst starting word to be "fuzzy").
