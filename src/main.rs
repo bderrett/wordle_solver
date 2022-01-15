@@ -27,7 +27,7 @@ fn get_match(played_word: &str, actual_word: &str) -> Matches {
 }
 
 fn get_word_to_play(words: &[String]) -> Option<String> {
-    let mut max_value = -f32::INFINITY;
+    let mut min_value = f32::INFINITY;
     let mut best_word = None;
     for played_word in words {
         let mut match_counts = HashMap::new();
@@ -36,9 +36,12 @@ fn get_word_to_play(words: &[String]) -> Option<String> {
                 .entry(get_match(played_word, actual_word))
                 .or_insert(0) += 1;
         }
-        let value: f32 = match_counts.values().map(|&v| (v as f32).log2()).sum();
-        if value > max_value {
-            max_value = value;
+        let value: f32 = match_counts
+            .values()
+            .map(|&v| (v as f32) * (v as f32).log2())
+            .sum();
+        if value < min_value {
+            min_value = value;
             best_word = Some(played_word);
         }
     }
