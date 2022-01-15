@@ -26,7 +26,7 @@ fn get_match(played_word: &str, actual_word: &str) -> Matches {
     matches
 }
 
-fn get_word_to_play(words: &[String]) -> String {
+fn get_word_to_play(words: &[String]) -> Option<String> {
     let mut max_value = -f32::INFINITY;
     let mut best_word = None;
     for played_word in words {
@@ -42,7 +42,7 @@ fn get_word_to_play(words: &[String]) -> String {
             best_word = Some(played_word);
         }
     }
-    best_word.unwrap().to_string()
+    best_word.map(|w| w.to_string())
 }
 
 fn read_matches() -> Matches {
@@ -78,13 +78,17 @@ fn main() {
         .filter(|word| re.is_match(word))
         .collect::<Vec<_>>();
     loop {
-        println!("There are {} possible words.", words.len());
-        if words.len() < 50 {
-            println!("Possible words: {}", words.join(" "));
+        if let Some(word_to_play) = get_word_to_play(&words) {
+            println!("There are {} possible words.", words.len());
+            if words.len() < 50 {
+                println!("Possible words: {}", words.join(" "));
+            }
+            println!("Play the word: {}", word_to_play);
+            let matches = read_matches();
+            words.retain(|w| get_match(&word_to_play, w) == matches);
+        } else {
+            println!("There are no matching words.");
+            break;
         }
-        let word_to_play = get_word_to_play(&words);
-        println!("Play the word: {}", word_to_play);
-        let matches = read_matches();
-        words.retain(|w| get_match(&word_to_play, w) == matches);
     }
 }
