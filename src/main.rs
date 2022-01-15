@@ -1,4 +1,5 @@
 //! A solver for Wordle puzzles.
+use colored::Colorize;
 use regex::Regex;
 use std::collections::HashMap;
 use std::fs::File;
@@ -60,24 +61,33 @@ fn get_word_to_play(words: &[String]) -> Option<String> {
 /// Asks the user which letters of the played word matched.
 fn read_matches() -> Matches {
     let mut matches = [Match::Missing; 5];
-    for (pos, pos_match) in matches.iter_mut().enumerate() {
-        loop {
-            let mut line = String::new();
-            println!("In position {}, was there an exact match [e], a match but in the wrong position [w], or no match [n]?", pos + 1);
-            std::io::stdin().read_line(&mut line).unwrap();
-            if let Some(char) = line.chars().next() {
-                if char == 'e' {
-                    *pos_match = Match::Exact;
-                    break;
-                } else if char == 'w' {
-                    *pos_match = Match::WrongPosition;
-                    break;
-                } else if char == 'n' {
-                    *pos_match = Match::Missing;
-                    break;
-                }
+    let e = "e".white().on_truecolor(106, 170, 100);
+    let w = "w".white().on_truecolor(201, 180, 88);
+    let n = "n".white().on_truecolor(120, 124, 126);
+    'a: loop {
+        let mut line = String::new();
+        println!("For each position 1-5, indicate whether there was:
+    an exact match [{e}],
+    a match but in the wrong position [{w}],
+    or no match [{n}]
+For example, if there were an exact match in the first position and no remaining matches, enter '{e}{n}{n}{n}{n}'.", e=e, n=n, w=w);
+        std::io::stdin().read_line(&mut line).unwrap();
+        line.pop(); // remove \n
+        if line.len() != 5 {
+            continue;
+        }
+        for (pos_match, char) in matches.iter_mut().zip(line.chars()) {
+            if char == 'e' {
+                *pos_match = Match::Exact;
+            } else if char == 'w' {
+                *pos_match = Match::WrongPosition;
+            } else if char == 'n' {
+                *pos_match = Match::Missing;
+            } else {
+                continue 'a;
             }
         }
+        break;
     }
     matches
 }
@@ -101,8 +111,12 @@ fn main() {
             if words.len() < 50 {
                 println!("Possible words: {}", words.join(" "));
             }
-            println!("Play the word: {}", word_to_play);
+            println!("Play the word: {}", word_to_play.bold());
             let matches = read_matches();
+            if matches == [Match::Exact; 5] {
+                println!("You win!");
+                break;
+            }
             words.retain(|w| get_match(&word_to_play, w) == matches);
         } else {
             println!("There are no matching words.");
