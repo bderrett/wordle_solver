@@ -1,6 +1,5 @@
 //! A solver for Wordle puzzles.
 use colored::Colorize;
-use regex::Regex;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufRead;
@@ -95,12 +94,10 @@ For example, if there were an exact match in the first position and no remaining
 /// Loads a dictionary.
 fn read_words(path: &str) -> Vec<String> {
     let file = File::open(path).expect("could not read dictionary");
-    let re = Regex::new(r"^[a-z]{5}$").unwrap();
     std::io::BufReader::new(file)
         .lines()
         .flatten()
-        .into_iter()
-        .filter(|word| re.is_match(word))
+        .filter(|word| word.len() == 5 && word.bytes().all(|b| b.is_ascii_lowercase()))
         .collect::<Vec<_>>()
 }
 fn main() {
