@@ -64,7 +64,7 @@ fn read_matches() -> Matches {
     let e = "e".white().on_truecolor(106, 170, 100);
     let w = "w".white().on_truecolor(201, 180, 88);
     let n = "n".white().on_truecolor(120, 124, 126);
-    'a: loop {
+    'get_input: loop {
         let mut line = String::new();
         println!("For each position 1-5, indicate whether there was:
     an exact match [{e}],
@@ -72,24 +72,20 @@ fn read_matches() -> Matches {
     or no match [{n}]
 For example, if there were an exact match in the first position and no remaining matches, enter '{e}{n}{n}{n}{n}'.", e=e, n=n, w=w);
         std::io::stdin().read_line(&mut line).unwrap();
-        line.pop(); // remove \n
-        if line.len() != 5 {
-            continue;
-        }
-        for (pos_match, char) in matches.iter_mut().zip(line.chars()) {
-            if char == 'e' {
-                *pos_match = Match::Exact;
-            } else if char == 'w' {
-                *pos_match = Match::WrongPosition;
-            } else if char == 'n' {
-                *pos_match = Match::Missing;
-            } else {
-                continue 'a;
+        let characters: [u8; 5] = match line.trim().to_ascii_lowercase().as_bytes().try_into() {
+            Ok(chars) => chars,
+            Err(_) => continue,
+        };
+        for (pos_match, b) in matches.iter_mut().zip(characters) {
+            *pos_match = match b as char {
+                'e' => Match::Exact,
+                'w' => Match::WrongPosition,
+                'n' => Match::Missing,
+                _ => continue 'get_input,
             }
         }
-        break;
+        return matches;
     }
-    matches
 }
 
 /// Loads a dictionary.
