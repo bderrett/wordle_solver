@@ -1,5 +1,6 @@
 //! A solver for Wordle puzzles.
 use colored::Colorize;
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufRead;
@@ -37,7 +38,7 @@ fn get_match(played_word: &str, hidden_word: &str) -> Matches {
 /// Chooses a word to play according to the entropy objective.
 fn get_word_to_play(words: &[String]) -> Option<String> {
     words
-        .iter()
+        .par_iter()
         .map(|word| {
             let mut match_counts = HashMap::new();
             for hidden_word in words {
@@ -53,7 +54,7 @@ fn get_word_to_play(words: &[String]) -> Option<String> {
                 word.clone(),
             )
         })
-        .reduce(|x, y| if x.0 < y.0 { x } else { y })
+        .reduce_with(|x, y| if x.0 < y.0 { x } else { y })
         .map(|x| x.1)
 }
 
