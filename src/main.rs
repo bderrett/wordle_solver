@@ -21,16 +21,24 @@ enum Match {
 type Matches = [Match; 5];
 
 /// Determines the matches for a particular played word.
+///
+/// See `tests::test_get_match`.
 fn get_match(played_word: &str, hidden_word: &str) -> Matches {
     let mut matches = [Match::Missing; 5];
     for (pos, char) in played_word.chars().enumerate() {
-        matches[pos] = if char == hidden_word.chars().nth(pos).unwrap() {
-            Match::Exact
-        } else if hidden_word.contains(char) {
-            Match::WrongPosition
-        } else {
-            Match::Missing
-        };
+        if char == hidden_word.chars().nth(pos).unwrap() {
+            matches[pos] = Match::Exact;
+        }
+    }
+    for (pos, char) in played_word.chars().enumerate() {
+        if matches[pos] == Match::Exact {
+            continue;
+        }
+        for (other_pos, other_char) in hidden_word.chars().enumerate() {
+            if char == other_char && matches[other_pos] != Match::Exact {
+                matches[pos] = Match::WrongPosition;
+            }
+        }
     }
     matches
 }
@@ -116,5 +124,25 @@ fn main() {
             println!("There are no matching words.");
             break;
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::*;
+
+    #[test]
+    fn test_get_match() {
+        // Note that the 2nd "o" of broom is not reported as being in the wrong position.
+        assert_eq!(
+            get_match("broom", "proxy"),
+            [
+                Match::Missing,
+                Match::Exact,
+                Match::Exact,
+                Match::Missing,
+                Match::Missing,
+            ]
+        );
     }
 }
