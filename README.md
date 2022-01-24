@@ -28,6 +28,6 @@ eeeee
 You win!
 ```
 
-It chooses words so as to minimize the expected logarithm of the number of remaining words (see the information-theoretic justification [here](https://langproc.substack.com/p/information-theoretic-analysis-of)). It typically solves in three guesses.
+It chooses words so as to minimize the expected logarithm of the number of remaining words (see the information-theoretic justification [here](https://langproc.substack.com/p/information-theoretic-analysis-of)). This is just a heuristic -- for optimality, we would need to [consider the game tree](http://sonorouschocolate.com/notes/index.php?title=The_best_strategies_for_Wordle). It typically solves in three or four guesses.
 
 I wrote this because I was wondering which word to start with. It suggests "raise" (and considers the worst starting word to be "mamma").
