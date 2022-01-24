@@ -28,6 +28,6 @@ eeeee
 You win!
 ```
 
-It chooses words so as to minimize the expected logarithm of the number of remaining words. It typically solves in three guesses.
+It chooses words so as to minimize the expected logarithm of the number of remaining words (see the information-theoretic justification [here](https://langproc.substack.com/p/information-theoretic-analysis-of)). It typically solves in three guesses.
 
 I wrote this because I was wondering which word to start with. It suggests "raise" (and considers the worst starting word to be "mamma").
