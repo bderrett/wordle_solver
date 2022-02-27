@@ -106,6 +106,12 @@ fn read_words(path: &str) -> Vec<String> {
         .collect::<Vec<_>>()
 }
 fn main() {
+    let args = std::env::args().collect::<Vec<_>>();
+    if args.len() >= 2 {
+        assert!(args[1] == "--quordle");
+        quordle_solver();
+        return;
+    }
     let mut words = read_words("wordle_hidden_words.txt");
     loop {
         if let Some(word_to_play) = get_word_to_play(&words) {
@@ -120,6 +126,74 @@ fn main() {
                 break;
             }
             words.retain(|w| get_match(&word_to_play, w) == matches);
+        } else {
+            println!("There are no matching words.");
+            break;
+        }
+    }
+}
+
+/// Chooses a word to play according to the entropy objective.
+fn get_word_to_play_quordle(
+    quad_words: &[Option<Vec<String>>; 4],
+    dict: &[String],
+) -> Option<String> {
+    dict.par_iter()
+        .map(|word| {
+            let mut match_counts = HashMap::new();
+            let mut cum_ent = 0.0;
+            for words in quad_words.iter().flatten() {
+                for hidden_word in words {
+                    *match_counts
+                        .entry(get_match(word, hidden_word))
+                        .or_insert(0) += 1;
+                }
+                let ent = match_counts
+                    .values()
+                    .map(|&v| (v as f32) * (v as f32).log2())
+                    .sum::<f32>();
+                cum_ent += ent;
+            }
+            (cum_ent, word.clone())
+        })
+        .reduce_with(|x, y| if x.0 < y.0 { x } else { y })
+        .map(|x| x.1)
+}
+fn quordle_solver() {
+    let mut dict = read_words("wordle_hidden_words.txt");
+    let mut quad_words = [
+        Some(dict.clone()),
+        Some(dict.clone()),
+        Some(dict.clone()),
+        Some(dict.clone()),
+    ];
+    loop {
+        if let Some(word_to_play) = get_word_to_play_quordle(&quad_words, &dict) {
+            println!("Play the word: {}", word_to_play.bold());
+            let mut correct = true;
+            for (quad_num, words_maybe) in quad_words.iter_mut().enumerate() {
+                if let Some(words) = words_maybe {
+                    println!("input matches for quad {}:", quad_num + 1);
+                    let matches = read_matches();
+                    words.retain(|w| get_match(&word_to_play, w) == matches);
+                    println!("{} words left in quad {}", words.len(), quad_num + 1);
+                    if matches != [Match::Exact; 5] {
+                        correct = false;
+                    } else {
+                        *words_maybe = None;
+                    }
+                }
+            }
+            if correct {
+                println!("You win!");
+                break;
+            }
+            dict.retain(|w| {
+                quad_words
+                    .iter()
+                    .any(|words| words.as_ref().map_or(false, |words| words.contains(w)))
+                    && w != &word_to_play
+            });
         } else {
             println!("There are no matching words.");
             break;
